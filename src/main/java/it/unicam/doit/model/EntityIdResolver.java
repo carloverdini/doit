@@ -1,0 +1,53 @@
+package it.unicam.doit.model;
+
+import com.fasterxml.jackson.annotation.ObjectIdGenerator;
+import com.fasterxml.jackson.annotation.ObjectIdResolver;
+import it.unicam.doit.repository.UtenteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.EntityManager;
+
+/**
+ * @author fta on 20.12.15.
+ */
+
+public class EntityIdResolver
+        implements ObjectIdResolver {
+
+    private EntityManager entityManager;
+    @Autowired
+    private UtenteRepository repository;
+
+    public EntityIdResolver(
+            final EntityManager entityManager) {
+
+        this.entityManager = entityManager;
+
+    }
+
+    @Override
+    public void bindItem(
+            final ObjectIdGenerator.IdKey id,
+            final Object pojo) {
+
+    }
+
+    @Override
+    public Object resolveId(final ObjectIdGenerator.IdKey id) {
+        return this.repository.getOne((Long) id.key);
+        // return this.entityManager.find(id.scope, id.key);
+    }
+
+    @Override
+    public ObjectIdResolver newForDeserialization(final Object context) {
+
+        return this;
+    }
+
+    @Override
+    public boolean canUseFor(final ObjectIdResolver resolverType) {
+
+        return false;
+    }
+
+}
