@@ -7,32 +7,31 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
 @Table
 @EntityListeners(AuditingEntityListener.class)
-public class RuoloProgetto {
+public class Candidatura {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column
-    @NotBlank
-    private String titolo;
+    private String presentazione;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "UTENTE_ID", referencedColumnName="id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Utente utente;
 
     @Column
-    private String descrizione;
+    private Long IdRuoloProgetto;
 
     @Column
     private String stato;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "PROGETTO_ID", referencedColumnName="id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Progetto progetto;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -49,20 +48,6 @@ public class RuoloProgetto {
     }
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getTitolo() {
-        return titolo;
-    }
-    public void setTitolo(String titolo) {
-        this.titolo = titolo;
-    }
-
-    public String getDescrizione() {
-        return descrizione;
-    }
-    public void setDescrizione(String descrizione) {
-        this.descrizione = descrizione;
     }
 
     public String getStato() {
@@ -87,11 +72,27 @@ public class RuoloProgetto {
         this.updatedAt = updatedAt;
     }
 
-    public Progetto getProgetto() {
-        return progetto;
+    public Long getIdRuoloProgetto() {
+        return IdRuoloProgetto;
     }
 
-    public void setProgetto(Progetto progetto) {
-        this.progetto = progetto;
+    public void setIdRuoloProgetto(Long idRuoloProgetto) {
+        IdRuoloProgetto = idRuoloProgetto;
+    }
+
+    public Utente getUtente() {
+        return utente;
+    }
+
+    public void setUtente(Utente utente) {
+        this.utente = utente;
+    }
+
+    public String getPresentazione() {
+        return presentazione;
+    }
+
+    public void setPresentazione(String presentazione) {
+        this.presentazione = presentazione;
     }
 }

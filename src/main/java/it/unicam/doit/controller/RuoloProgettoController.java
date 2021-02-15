@@ -1,69 +1,89 @@
 package it.unicam.doit.controller;
 
+
 import it.unicam.doit.exception.ResourceNotFoundException;
 import it.unicam.doit.model.RuoloProgetto;
-import it.unicam.doit.repository.ProgettoRepository;
+import it.unicam.doit.model.Progetto;
 import it.unicam.doit.repository.RuoloProgettoRepository;
+import it.unicam.doit.repository.ProgettoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@CrossOrigin
 public class RuoloProgettoController {
 
     @Autowired
-    RuoloProgettoRepository ruoloProgettoRepository;
-    ProgettoRepository progettoRepository;
+    RuoloProgettoRepository rpRep;
 
-    @GetMapping("progetto/{id}/ruoloProgetto")
-    public List<RuoloProgetto> getAllRuoloProgetto(@PathVariable(value = "id") Long idProgetto) {
-        return ruoloProgettoRepository.findByProgettoId(idProgetto);
+    @Autowired
+    ProgettoRepository pRep;
+
+    @GetMapping("/getRuoliProgetto")
+    public List<RuoloProgetto> getRuoliProgetto(){
+        System.out.println("getRuoliProgetto");
+        return rpRep.findAll();
+    }
+
+    @GetMapping("/getRuoliProgetto/{idProgetto}")
+    public List<RuoloProgetto> getRuoliProgetto(@PathVariable long idProgetto){
+        System.out.println("getRuoliProgetto");
+
+        Progetto progetto = pRep.findById(idProgetto);
+        return rpRep.findByProgetto(progetto);
     }
 
 
-    @PostMapping("/ruoloProgetto/{progettoId}")
-    public RuoloProgetto createRuoloProgetto(@PathVariable(value = "progettoId") Long progettoId,
-                                             @Valid @RequestBody RuoloProgetto ruoloProgetto) {
-        return progettoRepository.findById(progettoId).map(prj -> {
-            ruoloProgetto.setProgetto(prj);
-            return ruoloProgettoRepository.save(ruoloProgetto);
-        })
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", progettoId));
+
+    @GetMapping("/getRuoloProgetto/{id}")
+    public Optional<RuoloProgetto> getRuoloProgetto(@PathVariable long id) {
+        return rpRep.findById(id);
+    }
+
+/*
+    @GetMapping("/getProgetto/{titolo}")
+    public Progetto getProgetto(@PathVariable String titolo){
+        return pRep.findByTitolo(titolo);
+    }
+*/
+
+    @PostMapping("/addRuoloProgetto")
+    public String addRuoloProgetto(@RequestBody RuoloProgetto ruoloProgetto){
+        System.out.println("addRuoloProgetto");
+        ruoloProgetto.setStato("creato");
+        rpRep.save(ruoloProgetto);
+        return "ruolo progetto creato correttamente";
+    }
+
+    @PutMapping("/updateRuoloProgetto/{id}")
+    public RuoloProgetto updateRuoloProgetto(@PathVariable(value = "id") Long rpid,
+                                       @Valid @RequestBody RuoloProgetto ruoloProgettoData) {
+        RuoloProgetto ruoloProgetto = rpRep.findById(rpid)
+                .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", rpid));
+        ruoloProgetto.setTitolo(ruoloProgettoData.getTitolo());
+        ruoloProgetto.setDescrizione(ruoloProgettoData.getDescrizione());
+        RuoloProgetto updatedRP = rpRep.save(ruoloProgetto);
+        return updatedRP;
     }
 
 
-    @GetMapping("/ruoloProgetto/{id}")
-    public RuoloProgetto getRuoloProgettoById(@PathVariable(value = "id") Long ruoloProgettoId) {
-        return ruoloProgettoRepository.findById(ruoloProgettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", ruoloProgettoId));
-    }
+    @DeleteMapping("/deleteRuoloProgetto/{id}")
+    public ResponseEntity<?> deleteRuoloProgetto(@PathVariable(value = "id") Long rpid) {
+        RuoloProgetto rp = rpRep.findById(rpid)
+                .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", rpid));
 
-    @PutMapping("/ruoloProgetto/{id}")
-    public RuoloProgetto updateRuoloProgetto(@PathVariable(value = "id") Long ruoloProgettoId,
-                                             @Valid @RequestBody RuoloProgetto ruoloProgettoDetails) {
-
-        RuoloProgetto ruoloProgetto = ruoloProgettoRepository.findById(ruoloProgettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", ruoloProgettoId));
-
-        ruoloProgetto.setTitolo(ruoloProgettoDetails.getTitolo());
-        ruoloProgetto.setDescrizione(ruoloProgettoDetails.getDescrizione());
-
-        RuoloProgetto updatedRuoloProgetto = ruoloProgettoRepository.save(ruoloProgetto);
-        return updatedRuoloProgetto;
-    }
-
-    @DeleteMapping("/ruoloProgettos/{id}")
-    public ResponseEntity<?> deleteRuoloProgetto(@PathVariable(value = "id") Long ruoloProgettoId) {
-        RuoloProgetto ruoloProgetto = ruoloProgettoRepository.findById(ruoloProgettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", ruoloProgettoId));
-
-        ruoloProgettoRepository.delete(ruoloProgetto);
+        rpRep.delete(rp);
 
         return ResponseEntity.ok().build();
     }
+
+
+
+
+
 }

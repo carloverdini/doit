@@ -1,8 +1,11 @@
 package it.unicam.doit.controller;
 
+
 import it.unicam.doit.exception.ResourceNotFoundException;
 import it.unicam.doit.model.Progetto;
+import it.unicam.doit.model.Utente;
 import it.unicam.doit.repository.ProgettoRepository;
+import it.unicam.doit.repository.UtenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,58 +13,76 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-
 @RestController
-@RequestMapping("/api")
+@CrossOrigin
 public class ProgettoController {
 
     @Autowired
-    ProgettoRepository progettoRepository;
+    ProgettoRepository pRep;
 
-    @GetMapping("/progetto/list")
-    public List<Progetto> getAllProgetto() {
-        return progettoRepository.findAll();
+    @Autowired
+    UtenteRepository uRep;
+
+    @GetMapping("/getProgetti")
+    public List<Progetto> getProgetti(){
+        System.out.println("getProgetti");
+        return pRep.findAll();
     }
 
-    @GetMapping("/progetto/list/utente/{idProponente}")
-    public List<Progetto> getFilteredProgetto(@PathVariable("idProponente") Long id_utente) {
-        return (List<Progetto>) progettoRepository.findByUtente(id_utente);
+    @GetMapping("/getProgettiProponente/{idProponente}")
+    public List<Progetto> getProgettiProponente(@PathVariable long idProponente){
+        System.out.println("getProgettiProponente");
+
+        Utente utente = uRep.findById(idProponente);
+        return pRep.findByProponenteProgetto(utente);
     }
 
-    @PostMapping("/progetto")
-    public Progetto createProgetto(@Valid @RequestBody Progetto progetto) {
-        return progettoRepository.save(progetto);
+
+
+    @GetMapping("/getProgetto/{id}")
+    public Progetto getProgetto(@PathVariable long id) {
+        return pRep.findById(id);
     }
 
-    @GetMapping("/progetto/{id}")
-    public Progetto getProgettoById(@PathVariable(value = "id") Long progettoId) {
-        return progettoRepository.findById(progettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", progettoId));
+/*
+    @GetMapping("/getProgetto/{titolo}")
+    public Progetto getProgetto(@PathVariable String titolo){
+        return pRep.findByTitolo(titolo);
+    }
+*/
+
+    @PostMapping("/addProgetto")
+    public String addProgetto(@RequestBody Progetto progetto){
+        System.out.println("addProgetto");
+        progetto.setStato("creato");
+        pRep.save(progetto);
+        return "progetto creato correttamente";
     }
 
-    @PutMapping("/progetto/{id}")
-    public Progetto updateProgetto(@PathVariable(value = "id") Long progettoId,
-                                   @Valid @RequestBody Progetto progettoDetails) {
-
-        Progetto progetto = progettoRepository.findById(progettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", progettoId));
-
-        progetto.setNome(progettoDetails.getNome());
-        progetto.setDescrizione(progettoDetails.getDescrizione());
-        progetto.setDataPubblicazione(progettoDetails.getDataPubblicazione());
-        progetto.setDataScadenza(progettoDetails.getDataScadenza());
-
-        Progetto updatedProgetto = progettoRepository.save(progetto);
+    @PutMapping("/updateProgetto/{id}")
+    public Progetto updateProgetto(@PathVariable(value = "id") Long cid,
+                                       @Valid @RequestBody Progetto progettoData) {
+        Progetto progetto = pRep.findById(cid)
+                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", cid));
+        progetto.setTitolo(progettoData.getTitolo());
+        progetto.setDescrizione(progettoData.getDescrizione());
+        Progetto updatedProgetto = pRep.save(progetto);
         return updatedProgetto;
     }
 
-    @DeleteMapping("/progetto/{id}")
-    public ResponseEntity<?> deleteProgetto(@PathVariable(value = "id") Long progettoId) {
-        Progetto progetto = progettoRepository.findById(progettoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", progettoId));
 
-        progettoRepository.delete(progetto);
+    @DeleteMapping("/deleteProgetto/{id}")
+    public ResponseEntity<?> deleteProgetto(@PathVariable(value = "id") Long cid) {
+        Progetto progetto = pRep.findById(cid)
+                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", cid));
+
+        pRep.delete(progetto);
 
         return ResponseEntity.ok().build();
     }
+
+
+
+
+
 }

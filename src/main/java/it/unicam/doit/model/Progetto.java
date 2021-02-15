@@ -1,6 +1,5 @@
 package it.unicam.doit.model;
 
-import com.fasterxml.jackson.annotation.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,39 +9,39 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * Created by Carlo Verdini on 27/12/20.
- */
 @Entity
-@Table(name = "progetti")
+@Table
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(
-        value = {"createdAt", "updatedAt"},
-        allowGetters = true)
+public class Progetto {
 
-public class Progetto implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
+    @Column
     @NotBlank
-    private String nome;
+    private String titolo;
 
+    @Column
     private String descrizione;
 
-    @Column(name = "data_pubblicazione")
+    @Column
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dataPubblicazione;
 
-    @Column(name = "data_scadenza")
+    @Column
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dataScadenza;
 
+    @Column
     private String stato;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "UTENTE_ID", referencedColumnName="id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Utente proponenteProgetto;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -54,39 +53,23 @@ public class Progetto implements Serializable {
     @LastModifiedDate
     private Date updatedAt;
 
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_utente", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", resolver = EntityIdResolver.class)
-    @JsonIdentityReference(alwaysAsId = true)
-    @JsonProperty("id_utente")
-    private Utente utente;
-
-
-    public Progetto() {
-    }
-
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getNome() {
-        return nome;
+    public String getTitolo() {
+        return titolo;
     }
-
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setTitolo(String titolo) {
+        this.titolo = titolo;
     }
 
     public String getDescrizione() {
         return descrizione;
     }
-
     public void setDescrizione(String descrizione) {
         this.descrizione = descrizione;
     }
@@ -94,7 +77,6 @@ public class Progetto implements Serializable {
     public Date getDataPubblicazione() {
         return dataPubblicazione;
     }
-
     public void setDataPubblicazione(Date dataPubblicazione) {
         this.dataPubblicazione = dataPubblicazione;
     }
@@ -102,7 +84,6 @@ public class Progetto implements Serializable {
     public Date getDataScadenza() {
         return dataScadenza;
     }
-
     public void setDataScadenza(Date dataScadenza) {
         this.dataScadenza = dataScadenza;
     }
@@ -110,7 +91,6 @@ public class Progetto implements Serializable {
     public String getStato() {
         return stato;
     }
-
     public void setStato(String stato) {
         this.stato = stato;
     }
@@ -119,7 +99,6 @@ public class Progetto implements Serializable {
     public Date getCreatedAt() {
         return createdAt;
     }
-
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
@@ -127,22 +106,15 @@ public class Progetto implements Serializable {
     public Date getUpdatedAt() {
         return updatedAt;
     }
-
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public boolean isNew() {
-        return this.id == null;
+    public Utente getProponenteProgetto() {
+        return proponenteProgetto;
     }
 
-    public Utente getUtente() {
-        return utente;
+    public void setProponenteProgetto(Utente proponenteProgetto) {
+        this.proponenteProgetto = proponenteProgetto;
     }
-
-    public void setUtente(Utente utente) {
-        this.utente = utente;
-    }
-
-
 }

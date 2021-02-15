@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 @Table
 @EntityListeners(AuditingEntityListener.class)
-public class RuoloProgetto {
+public class Curriculum {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,13 +26,10 @@ public class RuoloProgetto {
     @Column
     private String descrizione;
 
-    @Column
-    private String stato;
-
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "PROGETTO_ID", referencedColumnName="id")
+    @JoinColumn(name = "UTENTE_ID", referencedColumnName="id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Progetto progetto;
+    private Utente proprietarioCurriculum;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -65,14 +62,6 @@ public class RuoloProgetto {
         this.descrizione = descrizione;
     }
 
-    public String getStato() {
-        return stato;
-    }
-    public void setStato(String stato) {
-        this.stato = stato;
-    }
-
-
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -87,11 +76,11 @@ public class RuoloProgetto {
         this.updatedAt = updatedAt;
     }
 
-    public Progetto getProgetto() {
-        return progetto;
+    public Utente getProprietarioCurriculum() {
+        return proprietarioCurriculum;
     }
 
-    public void setProgetto(Progetto progetto) {
-        this.progetto = progetto;
+    public void setProprietarioCurriculum(Utente proprietarioCurriculum) {
+        this.proprietarioCurriculum = proprietarioCurriculum;
     }
 }
