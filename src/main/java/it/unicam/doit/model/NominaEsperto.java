@@ -7,49 +7,27 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
 @Table
 @EntityListeners(AuditingEntityListener.class)
-public class Candidatura {
+public class NominaEsperto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column
-    private String presentazione;
-
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "CANDIDATO_ID", referencedColumnName="id")
+    @JoinColumn(name = "ESPERTO_ID", referencedColumnName="id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Utente candidato;
+    private Utente esperto;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RUOLO_PROGETTO_ID", referencedColumnName="id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private RuoloProgetto ruoloProgetto;
 
-        /*
-        * STATO CANDIDATURA
-        * qualsiasi utente
-        * candidatura richiesta-> RQSTD
-        *
-        * candidato
-        * candidatura attivata-> ACTVD
-        * candidatura ritirata -> CNCLD
-        *
-        * proponente o esperto
-        * candidatura confermata-> CFRMD
-        * candidatura scartata -> RJCTD
-        * */
-
-
-    @NotBlank
-    @Column
-    private String stato;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -68,38 +46,6 @@ public class Candidatura {
         this.id = id;
     }
 
-    public String getPresentazione() {
-        return presentazione;
-    }
-
-    public void setPresentazione(String presentazione) {
-        this.presentazione = presentazione;
-    }
-
-    public Utente getCandidato() {
-        return candidato;
-    }
-
-    public void setCandidato(Utente candidato) {
-        this.candidato = candidato;
-    }
-
-
-    public RuoloProgetto getRuoloProgetto() {
-        return ruoloProgetto;
-    }
-
-    public void setRuoloProgetto(RuoloProgetto ruoloProgetto) {
-        this.ruoloProgetto = ruoloProgetto;
-    }
-
-    public String getStato() {
-        return stato;
-    }
-    public void setStato(String stato) {
-        this.stato = stato;
-    }
-
 
     public Date getCreatedAt() {
         return createdAt;
@@ -113,6 +59,22 @@ public class Candidatura {
     }
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Utente getEsperto() {
+        return esperto;
+    }
+
+    public void setEsperto(Utente esperto) {
+        this.esperto = esperto;
+    }
+
+    public RuoloProgetto getRuoloProgetto() {
+        return ruoloProgetto;
+    }
+
+    public void setRuoloProgetto(RuoloProgetto ruoloProgetto) {
+        this.ruoloProgetto = ruoloProgetto;
     }
 
 }

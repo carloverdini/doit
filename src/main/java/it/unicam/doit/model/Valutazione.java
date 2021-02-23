@@ -1,11 +1,12 @@
 package it.unicam.doit.model;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Entity
@@ -18,21 +19,20 @@ public class Valutazione {
     private long id;
 
     @Column
-    @NotBlank
-    private String punteggio;
+    private Boolean esito;
 
     @Column
     private String note;
 
-    @Column
-    private Long idValutatore;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "VALUTATORE_ID", referencedColumnName="id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Utente valutatore;
 
-    @Column
-    private Long idCandidato;
-
-    @Column
-    private Long idRuoloProgetto;
-
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "CANDIDATURA_ID", referencedColumnName="id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Candidatura candidatura;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -51,6 +51,41 @@ public class Valutazione {
         this.id = id;
     }
 
+
+    public Boolean getEsito() {
+        return esito;
+    }
+
+    public void setEsito(Boolean esito) {
+        this.esito = esito;
+    }
+
+
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public Utente getValutatore() {
+        return valutatore;
+    }
+
+    public void setValutatore(Utente valutatore) {
+        this.valutatore = valutatore;
+    }
+
+    public Candidatura getCandidatura() {
+        return candidatura;
+    }
+
+    public void setCandidatura(Candidatura candidatura) {
+        this.candidatura = candidatura;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -66,43 +101,4 @@ public class Valutazione {
     }
 
 
-    public String getPunteggio() {
-        return punteggio;
-    }
-
-    public void setPunteggio(String punteggio) {
-        this.punteggio = punteggio;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public Long getIdValutatore() {
-        return idValutatore;
-    }
-
-    public void setIdValutatore(Long idValutatore) {
-        this.idValutatore = idValutatore;
-    }
-
-    public Long getIdCandidato() {
-        return idCandidato;
-    }
-
-    public void setIdCandidato(Long idCandidato) {
-        this.idCandidato = idCandidato;
-    }
-
-    public Long getIdRuoloProgetto() {
-        return idRuoloProgetto;
-    }
-
-    public void setIdRuoloProgetto(Long idRuoloProgetto) {
-        this.idRuoloProgetto = idRuoloProgetto;
-    }
 }

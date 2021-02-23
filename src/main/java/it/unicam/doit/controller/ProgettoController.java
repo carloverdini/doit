@@ -6,8 +6,11 @@ import it.unicam.doit.model.Progetto;
 import it.unicam.doit.model.Utente;
 import it.unicam.doit.repository.ProgettoRepository;
 import it.unicam.doit.repository.UtenteRepository;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,6 +31,11 @@ public class ProgettoController {
         System.out.println("getProgetti");
         return pRep.findAll();
     }
+    @GetMapping("/getProgettiAperti")
+    public List<Progetto> getProgettiAperti(){
+        System.out.println("getProgetti");
+        return pRep.findByStato("PUBLIC");
+    }
 
     @GetMapping("/getProgettiProponente/{idProponente}")
     public List<Progetto> getProgettiProponente(@PathVariable long idProponente){
@@ -44,17 +52,13 @@ public class ProgettoController {
         return pRep.findById(id);
     }
 
-/*
-    @GetMapping("/getProgetto/{titolo}")
-    public Progetto getProgetto(@PathVariable String titolo){
-        return pRep.findByTitolo(titolo);
-    }
-*/
 
     @PostMapping("/addProgetto")
     public String addProgetto(@RequestBody Progetto progetto){
         System.out.println("addProgetto");
-        progetto.setStato("creato");
+        Progetto prj = pRep.findByTitolo(progetto.getTitolo());
+        if (prj != null) return "progetto esistente";
+        progetto.setStato("DRAFT");
         pRep.save(progetto);
         return "progetto creato correttamente";
     }
@@ -64,10 +68,43 @@ public class ProgettoController {
                                        @Valid @RequestBody Progetto progettoData) {
         Progetto progetto = pRep.findById(cid)
                 .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", cid));
-        progetto.setTitolo(progettoData.getTitolo());
-        progetto.setDescrizione(progettoData.getDescrizione());
+
+        try {
+            BeanUtils.copyProperties(progetto,progettoData);
+        }catch(Exception e){
+
+        }
+
         Progetto updatedProgetto = pRep.save(progetto);
         return updatedProgetto;
+    }
+
+    @PutMapping("/changeStatusProgetto/{id}")
+    public String changeStatusProgetto(@PathVariable long id,
+                                @Valid @RequestBody ChangeStatusRequest rq) {
+        Progetto progetto = pRep.findById(id);
+        if(progetto == null) return "progetto inesistente";
+
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!progetto.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return "utente non autorizzato";
+        progetto.setStato(rq.stato);
+
+        Progetto updatedProgetto = pRep.save(progetto);
+        return "stato progetto aggiornato correttamente";
+    }
+
+
+    @GetMapping("/closeProgetto/{id}")
+    public String closeProgetto(@PathVariable long id) {
+        Progetto progetto = pRep.findById(id);
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (!progetto.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return "utente non autorizzato";
+
+        if(progetto != null) progetto.setStato("CLOSED");
+        Progetto updatedProgetto = pRep.save(progetto);
+        return "progetto aggiornato correttamente";
     }
 
 
@@ -81,8 +118,8 @@ public class ProgettoController {
         return ResponseEntity.ok().build();
     }
 
-
-
-
+    public static class ChangeStatusRequest{
+        public String stato;
+    }
 
 }

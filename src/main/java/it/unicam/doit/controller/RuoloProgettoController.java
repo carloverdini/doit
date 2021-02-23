@@ -2,17 +2,16 @@ package it.unicam.doit.controller;
 
 
 import it.unicam.doit.exception.ResourceNotFoundException;
-import it.unicam.doit.model.RuoloProgetto;
 import it.unicam.doit.model.Progetto;
-import it.unicam.doit.repository.RuoloProgettoRepository;
+import it.unicam.doit.model.RuoloProgetto;
 import it.unicam.doit.repository.ProgettoRepository;
+import it.unicam.doit.repository.RuoloProgettoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -41,7 +40,7 @@ public class RuoloProgettoController {
 
 
     @GetMapping("/getRuoloProgetto/{id}")
-    public Optional<RuoloProgetto> getRuoloProgetto(@PathVariable long id) {
+    public RuoloProgetto getRuoloProgetto(@PathVariable long id) {
         return rpRep.findById(id);
     }
 

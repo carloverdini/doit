@@ -31,7 +31,6 @@ public class CurriculumController {
     @GetMapping("/getCurriculumUtente/{idUtente}")
     public List<Curriculum> getCurriculumUtente(@PathVariable long idUtente){
         System.out.println("getCurriculumUtente");
-
         Utente utente = uRep.findById(idUtente);
         return cRep.findByProprietarioCurriculum(utente);
     }

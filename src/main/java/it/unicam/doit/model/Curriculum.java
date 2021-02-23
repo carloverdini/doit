@@ -26,6 +26,13 @@ public class Curriculum {
     @Column
     private String descrizione;
 
+    @NotBlank
+    @Column
+    private Date dataInizio;
+
+    @Column
+    private Date dataFine;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "UTENTE_ID", referencedColumnName="id")
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -82,5 +89,21 @@ public class Curriculum {
 
     public void setProprietarioCurriculum(Utente proprietarioCurriculum) {
         this.proprietarioCurriculum = proprietarioCurriculum;
+    }
+
+    public Date getDataInizio() {
+        return dataInizio;
+    }
+
+    public void setDataInizio(Date dataInizio) {
+        this.dataInizio = dataInizio;
+    }
+
+    public Date getDataFine() {
+        return dataFine;
+    }
+
+    public void setDataFine(Date dataFine) {
+        this.dataFine = dataFine;
     }
 }

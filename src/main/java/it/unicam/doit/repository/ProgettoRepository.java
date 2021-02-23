@@ -10,5 +10,7 @@ import java.util.List;
 public interface ProgettoRepository extends JpaRepository<Progetto, Long> {
     Progetto findById(long id);
     Progetto findByTitolo(String titolo);
+    Progetto findByIdRuoloProgetto(Long idrp);
     List<Progetto> findByProponenteProgetto(Utente utente);
+    List<Progetto> findByStato(String stato);
 }

@@ -35,6 +35,14 @@ public class Progetto {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dataScadenza;
 
+    /*
+     * STATO PROGETTO
+     * bozza -> DRAFT
+     * pubblicato -> PUBLIC
+     * chiuso -> CLOSED
+     * */
+
+
     @Column
     private String stato;
 
