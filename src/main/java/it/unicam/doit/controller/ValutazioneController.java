@@ -70,9 +70,9 @@ public class ValutazioneController extends AbstractApiController {
         vRep.save(valutazione);
         Candidatura cnd = vData.getCandidatura();
         if (vData.getEsito()){
-            cnd.setStato("CFRMD");
+            cnd.setStato(Candidatura.CFRMD);
         }else{
-            cnd.setStato("RJCTD");
+            cnd.setStato(Candidatura.RJCTD);
         }
         cRep.save(cnd);
 
