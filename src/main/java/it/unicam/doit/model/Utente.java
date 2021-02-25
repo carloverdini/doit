@@ -23,7 +23,7 @@ public class Utente {
     private String username;
 
     @Column
-    //@JsonIgnore
+   // @JsonIgnore
     @NotBlank
     @Size(min = 4, max = 100)
     private String password;

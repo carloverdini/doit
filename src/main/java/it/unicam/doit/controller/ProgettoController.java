@@ -1,24 +1,23 @@
 package it.unicam.doit.controller;
 
 
-import it.unicam.doit.exception.ResourceNotFoundException;
+import it.unicam.doit.controller.helper.AbstractApiController;
 import it.unicam.doit.model.Progetto;
 import it.unicam.doit.model.Utente;
 import it.unicam.doit.repository.ProgettoRepository;
 import it.unicam.doit.repository.UtenteRepository;
+import it.unicam.doit.service.ApiResponse;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @CrossOrigin
-public class ProgettoController {
+public class ProgettoController extends AbstractApiController {
 
     @Autowired
     ProgettoRepository pRep;
@@ -27,99 +26,116 @@ public class ProgettoController {
     UtenteRepository uRep;
 
     @GetMapping("/getProgetti")
-    public List<Progetto> getProgetti(){
-        System.out.println("getProgetti");
-        return pRep.findAll();
-    }
-    @GetMapping("/getProgettiAperti")
-    public List<Progetto> getProgettiAperti(){
-        System.out.println("getProgetti");
-        return pRep.findByStato("PUBLIC");
+    public ApiResponse getProgetti(){
+
+        return this.getSuccess(pRep.findByStato("PUBLIC"));
     }
 
     @GetMapping("/getProgettiProponente/{idProponente}")
-    public List<Progetto> getProgettiProponente(@PathVariable long idProponente){
-        System.out.println("getProgettiProponente");
-
+    public ApiResponse getProgettiProponente(@PathVariable long idProponente){
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
+        if (idProponente != user.getId()){
+            return this.getError("utente non autorizzato");
+        }
         Utente utente = uRep.findById(idProponente);
-        return pRep.findByProponenteProgetto(utente);
+        return this.getSuccess(pRep.findByProponenteProgetto(utente));
     }
 
 
 
     @GetMapping("/getProgetto/{id}")
-    public Progetto getProgetto(@PathVariable long id) {
-        return pRep.findById(id);
+    public ApiResponse getProgetto(@PathVariable long id) {
+
+        return this.getSuccess(pRep.findById(id));
     }
 
 
     @PostMapping("/addProgetto")
-    public String addProgetto(@RequestBody Progetto progetto){
-        System.out.println("addProgetto");
+    public ApiResponse addProgetto(@RequestBody Progetto progetto){
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
         Progetto prj = pRep.findByTitolo(progetto.getTitolo());
-        if (prj != null) return "progetto esistente";
-        progetto.setStato("DRAFT");
-        pRep.save(progetto);
-        return "progetto creato correttamente";
+        if (prj != null) {
+            return this.getError("titolo progetto esistente");
+        }
+        progetto.setProponenteProgetto(user);
+        progetto.setStato(progetto.DRAFT);
+        Progetto pres = pRep.save(progetto);
+        return this.getSuccess(pres);
     }
 
     @PutMapping("/updateProgetto/{id}")
-    public Progetto updateProgetto(@PathVariable(value = "id") Long cid,
+    public ApiResponse updateProgetto(@PathVariable(value = "id") Long cid,
                                        @Valid @RequestBody Progetto progettoData) {
-        Progetto progetto = pRep.findById(cid)
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", cid));
-
-        try {
-            BeanUtils.copyProperties(progetto,progettoData);
-        }catch(Exception e){
-
-        }
-
-        Progetto updatedProgetto = pRep.save(progetto);
-        return updatedProgetto;
-    }
-
-    @PutMapping("/changeStatusProgetto/{id}")
-    public String changeStatusProgetto(@PathVariable long id,
-                                @Valid @RequestBody ChangeStatusRequest rq) {
-        Progetto progetto = pRep.findById(id);
-        if(progetto == null) return "progetto inesistente";
-
+        Progetto prj = pRep.findById((long)cid);
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!progetto.getProponenteProgetto().getUsername().equals(ud.getUsername()))
-            return "utente non autorizzato";
-        progetto.setStato(rq.stato);
-
-        Progetto updatedProgetto = pRep.save(progetto);
-        return "stato progetto aggiornato correttamente";
+        Utente user = uRep.findByUsername(ud.getUsername());
+        if (prj.getProponenteProgetto().getId() != user.getId()){
+            return this.getError("utente non autorizzato");
+        }
+        try {
+            BeanUtils.copyProperties(prj,progettoData);
+        }catch(Exception e){
+            return this.getError(e.getMessage());
+        }
+        Progetto pres = pRep.save(prj);
+        return this.getSuccess(pres);
     }
 
+
+    @GetMapping("/draftProgetto/{id}")
+    public ApiResponse draftProgetto(@PathVariable(value = "id") Long rpid) {
+        Progetto prj = pRep.findById((long)rpid);
+        if(prj == null)
+            return this.getError("progetto inesistente");
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return this.getError("utente non autorizzato");
+        prj.setStato(prj.DRAFT);
+        pRep.save(prj);
+        return this.getSuccess("progetto aggiornato");
+    }
+
+
+    @GetMapping("/openProgetto/{id}")
+    public ApiResponse openProgetto(@PathVariable(value = "id") Long rpid) {
+        Progetto prj = pRep.findById((long)rpid);
+        if(prj == null)
+            return this.getError("progetto inesistente");
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return this.getError("utente non autorizzato");
+        prj.setStato(prj.OPENED);
+        pRep.save(prj);
+        return this.getSuccess("progetto aggiornato");
+    }
 
     @GetMapping("/closeProgetto/{id}")
-    public String closeProgetto(@PathVariable long id) {
-        Progetto progetto = pRep.findById(id);
+    public ApiResponse closeProgetto(@PathVariable(value = "id") Long rpid) {
+        Progetto prj = pRep.findById((long)rpid);
+        if(prj == null)
+            return this.getError("progetto inesistente");
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (!progetto.getProponenteProgetto().getUsername().equals(ud.getUsername()))
-            return "utente non autorizzato";
-
-        if(progetto != null) progetto.setStato("CLOSED");
-        Progetto updatedProgetto = pRep.save(progetto);
-        return "progetto aggiornato correttamente";
+        if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return this.getError("utente non autorizzato");
+        prj.setStato(prj.CLOSED);
+        pRep.save(prj);
+        return this.getSuccess("progetto aggionrato");
     }
 
 
     @DeleteMapping("/deleteProgetto/{id}")
-    public ResponseEntity<?> deleteProgetto(@PathVariable(value = "id") Long cid) {
-        Progetto progetto = pRep.findById(cid)
-                .orElseThrow(() -> new ResourceNotFoundException("Progetto", "id", cid));
+    public ApiResponse deleteProgetto(@PathVariable(value = "id") Long cid) {
+        Progetto prj = pRep.findById((long)cid);
+        if(prj == null)
+            return this.getError("progetto inesistente");
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
+            return this.getError("utente non autorizzato");
+        pRep.delete(prj);
 
-        pRep.delete(progetto);
-
-        return ResponseEntity.ok().build();
-    }
-
-    public static class ChangeStatusRequest{
-        public String stato;
+        return this.getSuccess("progetto eliminato");
     }
 
 }

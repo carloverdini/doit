@@ -26,8 +26,20 @@ public class RuoloProgetto {
     @Column
     private String descrizione;
 
+
+    /*
+     * STATO CANDIDATURA
+     * bozza, non visibile al network > DRAFT
+     * aperto, accetta candidature -> OPENED
+     * chiuso, non accetta candidature -> CLOSED
+     */
+
     @Column
     private String stato;
+
+    public static final String DRAFT = "DRAFT";
+    public static final String OPENED = "OPENED";
+    public static final String CLOSED = "CLOSED";
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "PROGETTO_ID", referencedColumnName="id")
@@ -94,4 +106,8 @@ public class RuoloProgetto {
     public void setProgetto(Progetto progetto) {
         this.progetto = progetto;
     }
+
+
+
+
 }

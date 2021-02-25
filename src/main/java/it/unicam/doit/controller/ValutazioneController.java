@@ -1,14 +1,11 @@
 package it.unicam.doit.controller;
 
+import it.unicam.doit.controller.helper.AbstractApiController;
 import it.unicam.doit.exception.ResourceNotFoundException;
-import it.unicam.doit.model.Candidatura;
-import it.unicam.doit.model.Utente;
-import it.unicam.doit.model.Valutazione;
-import it.unicam.doit.repository.CandidaturaRepository;
-import it.unicam.doit.repository.UtenteRepository;
-import it.unicam.doit.repository.ValutazioneRepository;
+import it.unicam.doit.model.*;
+import it.unicam.doit.repository.*;
+import it.unicam.doit.service.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +14,7 @@ import javax.validation.Valid;
 
 @RestController
 @CrossOrigin
-public class ValutazioneController {
+public class ValutazioneController extends AbstractApiController {
 
     @Autowired
     ValutazioneRepository vRep;
@@ -25,34 +22,46 @@ public class ValutazioneController {
     UtenteRepository uRep;
     @Autowired
     CandidaturaRepository cRep;
-
+    @Autowired
+    RuoloProgettoRepository rpRep;
+    @Autowired
+    ProgettoRepository pRep;
+    @Autowired
+    NominaEspertoRepository neRep;
 
     @GetMapping("/getValutazione/{id}")
-    public Valutazione getValutazione(@PathVariable long vid){
-        System.out.println("getValutazione");
-        return vRep.findById(vid)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", vid));
+    public ApiResponse getValutazione(@PathVariable long vid){
+        return this.getSuccess(vRep.findById(vid));
     }
 
     @PostMapping("/addValutazione")
-    public String addValutazione(@RequestBody Valutazione vData){
-        //associo utente a valutazione
+    public ApiResponse addValutazione(@RequestBody Valutazione vData){
+        // verificare se proponente o esperto
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Utente user = uRep.findByUsername(ud.getUsername());
+        Candidatura cnd = cRep.findById((long)vData.getCandidatura().getId());
+        RuoloProgetto rpj = rpRep.findById((long)cnd.getRuoloProgetto().getId());
+        Progetto pj = pRep.findById((long)rpj.getProgetto().getId());
+        NominaEsperto nme = neRep.findByRuoloProgetto(rpj);
+        if(!user.getId().equals(pj.getProponenteProgetto().getId()) && !user.getId().equals(nme.getEsperto().getId())){
+            return this.getError("utente non autorizzato");
+        }
         vData.setValutatore(user);
         vRep.save(vData);
-        Candidatura cnd = vData.getCandidatura();
+
+        //imposto di conseguenza lo stato della candidatura
         if (vData.getEsito()){
             cnd.setStato("CFRMD");
         }else{
             cnd.setStato("RJCTD");
         }
         cRep.save(cnd);
-        return "valutazione creata correttamente";
+
+        return this.getSuccess("valutazione creata correttamente");
     }
 
     @PutMapping("/updateValutazione/{id}")
-    public String updateValutazione(@PathVariable(value = "id") Long vid,
+    public ApiResponse updateValutazione(@PathVariable(value = "id") Long vid,
                                        @Valid @RequestBody Valutazione vData) {
         Valutazione valutazione = vRep.findById(vid)
                 .orElseThrow(() -> new ResourceNotFoundException("Valutazione", "id", vid));
@@ -67,18 +76,18 @@ public class ValutazioneController {
         }
         cRep.save(cnd);
 
-        return "valutazione aggiornata correttamente";
+        return this.getSuccess("valutazione aggiornata correttamente");
     }
 
 
     @DeleteMapping("/deleteValutazione/{id}")
-    public ResponseEntity<?> deleteValutazione(@PathVariable(value = "id") Long vid) {
+    public ApiResponse deleteValutazione(@PathVariable(value = "id") Long vid) {
         Valutazione valutazione = vRep.findById(vid)
                 .orElseThrow(() -> new ResourceNotFoundException("RuoloProgetto", "id", vid));
 
         vRep.delete(valutazione);
 
-        return ResponseEntity.ok().build();
+        return this.getSuccess("valutazione eliminata");
     }
 
 

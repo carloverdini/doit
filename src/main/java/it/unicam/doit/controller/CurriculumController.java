@@ -1,20 +1,22 @@
 package it.unicam.doit.controller;
 
+import it.unicam.doit.controller.helper.AbstractApiController;
 import it.unicam.doit.exception.ResourceNotFoundException;
 import it.unicam.doit.model.Curriculum;
 import it.unicam.doit.model.Utente;
 import it.unicam.doit.repository.CurriculumRepository;
 import it.unicam.doit.repository.UtenteRepository;
+import it.unicam.doit.service.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @CrossOrigin
-public class CurriculumController {
+public class CurriculumController extends AbstractApiController {
 
     @Autowired
     CurriculumRepository cRep;
@@ -23,58 +25,62 @@ public class CurriculumController {
     UtenteRepository uRep;
 
     @GetMapping("/getCurriculum")
-    public List<Curriculum> getCurriculum(){
+    public ApiResponse getCurriculum(){
         System.out.println("getCurriculum");
-        return cRep.findAll();
+        return this.getSuccess(cRep.findAll());
     }
 
     @GetMapping("/getCurriculumUtente/{idUtente}")
-    public List<Curriculum> getCurriculumUtente(@PathVariable long idUtente){
+    public ApiResponse getCurriculumUtente(@PathVariable long idUtente){
         System.out.println("getCurriculumUtente");
         Utente utente = uRep.findById(idUtente);
-        return cRep.findByProprietarioCurriculum(utente);
+        return this.getSuccess(cRep.findByProprietarioCurriculum(utente));
     }
 
     @GetMapping("/getCurriculum/{id}")
-    public Curriculum getCurriculum(@PathVariable long id) {
-        return cRep.findById(id);
+    public ApiResponse getCurriculum(@PathVariable long id) {
+        return this.getSuccess(cRep.findById(id));
     }
 
-
-/*
-    @GetMapping("/getCurriculum/{titolo}")
-    public Curriculum getCurriculum(@PathVariable String titolo){
-        return pRep.findByTitolo(titolo);
-    }
-*/
 
     @PostMapping("/addCurriculum")
-    public String addCurriculum(@RequestBody Curriculum curriculum){
-        System.out.println("addCurriculum");
-        cRep.save(curriculum);
-        return "curriculum creato correttamente";
+    public ApiResponse addCurriculum(@RequestBody Curriculum curriculum){
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
+        curriculum.setProprietarioCurriculum(user);
+        Curriculum cres = cRep.save(curriculum);
+        return this.getSuccess(cres);
     }
 
     @PutMapping("/updateCurriculum/{id}")
-    public Curriculum updateCurriculum(@PathVariable(value = "id") Long cid,
+    public ApiResponse updateCurriculum(@PathVariable(value = "id") Long cid,
                                    @Valid @RequestBody Curriculum curriculumData) {
-        Curriculum curriculum = cRep.findById(cid)
-                .orElseThrow(() -> new ResourceNotFoundException("Curriculum", "id", cid));
-        curriculum.setTitolo(curriculumData.getTitolo());
-        curriculum.setDescrizione(curriculumData.getDescrizione());
-        Curriculum updatedCurriculum = cRep.save(curriculum);
-        return updatedCurriculum;
+        Curriculum cur = cRep.findById((long)cid);
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
+        if (cur.getProprietarioCurriculum().getId() != user.getId()){
+            return this.getError("utente non autorizzato");
+        }
+        cur.setTitolo(curriculumData.getTitolo());
+        cur.setDescrizione(curriculumData.getDescrizione());
+        Curriculum cres = cRep.save(cur);
+        return this.getSuccess(cres);
     }
 
 
     @DeleteMapping("/deleteCurriculum/{id}")
-    public ResponseEntity<?> deleteCurriculum(@PathVariable(value = "id") Long cid) {
-        Curriculum curriculum = cRep.findById(cid)
+    public ApiResponse deleteCurriculum(@PathVariable(value = "id") Long cid) {
+        Curriculum cur = cRep.findById(cid)
                 .orElseThrow(() -> new ResourceNotFoundException("Curriculum", "id", cid));
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
+        if (cur.getProprietarioCurriculum().getId() != user.getId()){
+            return this.getError("utente non autorizzato");
+        }
 
-        cRep.delete(curriculum);
+        cRep.delete(cur);
 
-        return ResponseEntity.ok().build();
+        return this.getSuccess("curriculum eliminato");
     }
 
 

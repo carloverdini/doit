@@ -15,7 +15,6 @@ import java.util.Date;
 @Table
 @EntityListeners(AuditingEntityListener.class)
 public class Progetto {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -45,6 +44,12 @@ public class Progetto {
 
     @Column
     private String stato;
+
+    public static final String DRAFT = "DRAFT";
+    public static final String OPENED = "OPENED";
+    public static final String CLOSED = "CLOSED";
+
+
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "UTENTE_ID", referencedColumnName="id")

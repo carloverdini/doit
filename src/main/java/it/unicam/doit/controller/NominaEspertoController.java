@@ -1,6 +1,6 @@
 package it.unicam.doit.controller;
 
-import it.unicam.doit.exception.ResourceNotFoundException;
+import it.unicam.doit.controller.helper.AbstractApiController;
 import it.unicam.doit.model.NominaEsperto;
 import it.unicam.doit.model.Progetto;
 import it.unicam.doit.model.RuoloProgetto;
@@ -9,17 +9,15 @@ import it.unicam.doit.repository.NominaEspertoRepository;
 import it.unicam.doit.repository.ProgettoRepository;
 import it.unicam.doit.repository.RuoloProgettoRepository;
 import it.unicam.doit.repository.UtenteRepository;
+import it.unicam.doit.service.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @CrossOrigin
-public class NominaEspertoController {
+public class NominaEspertoController extends AbstractApiController {
 
     @Autowired
     NominaEspertoRepository nRep;
@@ -35,36 +33,41 @@ public class NominaEspertoController {
 
 
 
-    @GetMapping("/getNomineValutatore/{idUtente}")
-    public List<NominaEsperto> getNomineValutatore(@PathVariable long idUtente){
-
+    @GetMapping("/getNomineEsperto/{idUtente}")
+    public ApiResponse getNomineValutatore(@PathVariable long idUtente){
         Utente user = uRep.findById(idUtente);
-        return nRep.findByEsperto(user);
+        return this.getSuccess(nRep.findByEsperto(user));
     }
 
     @PostMapping("/addNominaEsperto")
-    public String addNominaEsperto(@RequestBody NominaEsperto ne){
+    public ApiResponse addNominaEsperto(@RequestBody NominaEsperto ne){
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Utente user = uRep.findByUsername(ud.getUsername());
-        long rpid = ne.getRuoloProgetto().getId();
-        RuoloProgetto rp = rpRep.findById(rpid);
-        long pid = rp.getProgetto().getId();
-        Progetto p = pRep.findById(pid);
-        if(!p.getProponenteProgetto().equals(user.getId()) ){
-            return "utente non autorizzato alla nomina";
+        RuoloProgetto rp = rpRep.findById((long)ne.getRuoloProgetto().getId());
+        Progetto p = pRep.findById((long)rp.getProgetto().getId());
+        if(!p.getProponenteProgetto().getId().equals(user.getId())){
+            return this.getError("utente non autorizzato");
         }
-        nRep.save(ne);
-        return "nomina creata correttamente";
+        NominaEsperto existNe = nRep.findByRuoloProgetto(rp);
+        if (existNe != null) return this.getError("nomina esistente");
+
+        NominaEsperto nres = nRep.save(ne);
+        return this.getSuccess(nres);
     }
 
     @DeleteMapping("/deleteNominaEsperto/{id}")
-    public ResponseEntity<?> deleteNominaEsperto(@PathVariable(value = "id") Long nid) {
-        NominaEsperto ne = nRep.findById(nid)
-                .orElseThrow(() -> new ResourceNotFoundException("nominaEsperto", "id", nid));
+    public ApiResponse deleteNominaEsperto(@PathVariable(value = "id") Long nid) {
+        NominaEsperto ne = nRep.findById((long)nid);
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Utente user = uRep.findByUsername(ud.getUsername());
+        RuoloProgetto rp = rpRep.findById((long)ne.getRuoloProgetto().getId());
+        Progetto p = pRep.findById((long)rp.getProgetto().getId());
+        if(!p.getProponenteProgetto().getId().equals(user.getId())){
+            return this.getError("utente non autorizzato");
+        }
 
         nRep.delete(ne);
-
-        return ResponseEntity.ok().build();
+        return this.getSuccess("candidatura eliminata");
     }
 
 

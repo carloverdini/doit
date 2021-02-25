@@ -32,24 +32,32 @@ public class Candidatura {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private RuoloProgetto ruoloProgetto;
 
-        /*
-        * STATO CANDIDATURA
-        * qualsiasi utente
-        * candidatura richiesta-> RQSTD
-        *
-        * candidato
-        * candidatura attivata-> ACTVD
-        * candidatura ritirata -> CNCLD
-        *
-        * proponente o esperto
-        * candidatura confermata-> CFRMD
-        * candidatura scartata -> RJCTD
-        * */
-
 
     @NotBlank
     @Column
     private String stato;
+
+    /*
+     * STATO CANDIDATURA
+     * qualsiasi utente
+     * candidatura richiesta-> RQSTD
+     *
+     * candidato
+     * candidatura attivata-> ACTVD
+     * candidatura ritirata -> CNCLD
+     *
+     * proponente o esperto
+     * candidatura confermata-> CFRMD
+     * candidatura scartata -> RJCTD
+     * */
+
+    public static final String RQSTD = "RQSTD";
+    public static final String ACTVD = "ACTVD";
+    public static final String CNCLD = "CNCLD";
+    public static final String CFRMD = "CFRMD";
+    public static final String RJCTD = "RJCTD";
+
+
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
