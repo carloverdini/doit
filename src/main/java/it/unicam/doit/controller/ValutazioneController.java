@@ -51,9 +51,9 @@ public class ValutazioneController extends AbstractApiController {
 
         //imposto di conseguenza lo stato della candidatura
         if (vData.getEsito()){
-            cnd.setStato("CFRMD");
+            cnd.setStato(Candidatura.CFRMD);
         }else{
-            cnd.setStato("RJCTD");
+            cnd.setStato(Candidatura.RJCTD);
         }
         cRep.save(cnd);
 
