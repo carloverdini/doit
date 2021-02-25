@@ -30,12 +30,6 @@ public class RuoloProgettoController extends AbstractApiController {
     @Autowired
     ProgettoRepository pRep;
 
-    @GetMapping("/getRuoliProgetto")
-    public ApiResponse getRuoliProgetto(){
-        return this.getSuccess(rpRep.findAll());
-    }
-
-
     @GetMapping("/getRuoliProgetto/{idProgetto}")
     public ApiResponse getRuoliProgetto(@PathVariable long idProgetto){
         Progetto progetto = pRep.findById(idProgetto);
@@ -55,9 +49,6 @@ public class RuoloProgettoController extends AbstractApiController {
         if (prj.getProponenteProgetto().getId() != user.getId()){
             return this.getError("utente non autorizzato");
         }
-        RuoloProgetto rpjOld = rpRep.findByTitolo(rpj.getTitolo());
-        if (rpjOld != null)
-            return this.getError("ruolo progetto esistente");
         rpj.setStato(RuoloProgetto.DRAFT);
         RuoloProgetto res = rpRep.save(rpj);
         return this.getSuccess(res);//"ruolo progetto creato correttamente";

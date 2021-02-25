@@ -26,7 +26,11 @@ public class Curriculum {
     @Column
     private String descrizione;
 
+
     @NotBlank
+    @Column
+    private String azienda;
+
     @Column
     private Date dataInizio;
 
@@ -105,5 +109,13 @@ public class Curriculum {
 
     public void setDataFine(Date dataFine) {
         this.dataFine = dataFine;
+    }
+
+    public String getAzienda() {
+        return azienda;
+    }
+
+    public void setAzienda(String azienda) {
+        this.azienda = azienda;
     }
 }

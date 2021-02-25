@@ -28,7 +28,7 @@ public class ProgettoController extends AbstractApiController {
     @GetMapping("/getProgetti")
     public ApiResponse getProgetti(){
 
-        return this.getSuccess(pRep.findByStato("PUBLIC"));
+        return this.getSuccess(pRep.findByStato(Progetto.OPENED));
     }
 
     @GetMapping("/getProgettiProponente/{idProponente}")
@@ -60,7 +60,7 @@ public class ProgettoController extends AbstractApiController {
             return this.getError("titolo progetto esistente");
         }
         progetto.setProponenteProgetto(user);
-        progetto.setStato(progetto.DRAFT);
+        progetto.setStato(Progetto.DRAFT);
         Progetto pres = pRep.save(progetto);
         return this.getSuccess(pres);
     }
@@ -92,7 +92,7 @@ public class ProgettoController extends AbstractApiController {
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
             return this.getError("utente non autorizzato");
-        prj.setStato(prj.DRAFT);
+        prj.setStato(Progetto.DRAFT);
         pRep.save(prj);
         return this.getSuccess("progetto aggiornato");
     }
@@ -106,7 +106,7 @@ public class ProgettoController extends AbstractApiController {
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
             return this.getError("utente non autorizzato");
-        prj.setStato(prj.OPENED);
+        prj.setStato(Progetto.OPENED);
         pRep.save(prj);
         return this.getSuccess("progetto aggiornato");
     }
@@ -119,7 +119,7 @@ public class ProgettoController extends AbstractApiController {
         UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!prj.getProponenteProgetto().getUsername().equals(ud.getUsername()))
             return this.getError("utente non autorizzato");
-        prj.setStato(prj.CLOSED);
+        prj.setStato(Progetto.CLOSED);
         pRep.save(prj);
         return this.getSuccess("progetto aggionrato");
     }

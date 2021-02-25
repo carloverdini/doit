@@ -41,11 +41,11 @@ public class RichiestaCandidatura {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Utente destinatario;
 
-    /**
-     * inviata SENT
-     * aperta  OPND
-     * accettata ACPD
-     * */
+    @Column
+    private String tipo;
+    public static final String CANDIDATO = "CANDIDATO";
+    public static final String ESPERTO = "ESPERTO";
+
     @Column
     private String stato;
 
@@ -128,5 +128,13 @@ public class RichiestaCandidatura {
 
     public void setStato(String stato) {
         this.stato = stato;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 }
