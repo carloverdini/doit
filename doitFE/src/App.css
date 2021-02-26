@@ -1,0 +1,16 @@
+#root{
+  max-width: 1200px;
+  padding:20px;
+  margin:0px auto;
+}
+
+.login-form{
+  max-width: 400px;
+  margin: 0px auto;
+}
+
+.wrapform{
+  padding:10px;
+  border:1px solid #dedede;
+  border-radius: 5px;
+}
